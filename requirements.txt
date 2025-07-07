@@ -1,0 +1,14 @@
+pandas
+numpy
+scikit-learn
+xgboost
+pickles
+lightgbm
+flask
+PyYAML
+ensure
+python-box
+pytest
+scipy
+
+-e .
