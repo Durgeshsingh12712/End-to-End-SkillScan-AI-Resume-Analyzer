@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 from ensure import ensure_annotations
 
-from exception import SkillScanException
+from skillScan.exception import SkillScanException
 from skillScan.logging import logger
 
 

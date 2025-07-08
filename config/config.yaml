@@ -5,3 +5,8 @@ data_ingestion:
   source_URL: https://raw.githubusercontent.com/Durgeshsingh12712/Data-All/refs/heads/main/skillscan.zip
   local_data_file: artifacts/data_ingestion/skillscan.zip
   unzip_dir: artifacts/data_ingestion
+
+data_validation:
+  root_dir: artifacts/data_validation
+  STATUS_FILE: artifacts/data_validation/status.txt
+  ALL_REQUIRED_FILES: ["skillscan.csv", "skillscan.zip"]

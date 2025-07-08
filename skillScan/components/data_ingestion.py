@@ -1,9 +1,8 @@
 import os, sys, zipfile
 from urllib import request
 
-from entity import DataIngestionConfig
-from entity import DataIngestionArtifact
-from exception import SkillScanException
+from skillScan.entity import DataIngestionConfig, DataIngestionArtifact
+from skillScan.exception import SkillScanException
 from skillScan.logging import logger
 
 

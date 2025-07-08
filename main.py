@@ -1,4 +1,4 @@
-from pipeline import TrainingPipeline
+from skillScan.pipeline import TrainingPipeline
 from skillScan.logging import logger
 
 if __name__ == "__main__":
