@@ -1,0 +1,7 @@
+artifacts_root: artifacts
+
+data_ingestion:
+  root_dir: artifacts/data_ingestion
+  source_URL: https://raw.githubusercontent.com/Durgeshsingh12712/Data-All/refs/heads/main/skillscan.zip
+  local_data_file: artifacts/data_ingestion/skillscan.zip
+  unzip_dir: artifacts/data_ingestion

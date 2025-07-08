@@ -3,8 +3,8 @@ from pathlib import Path
 from typing import Any
 from ensure import ensure_annotations
 
-from exception.skillscanexception import SkillScanException
-from logging.skillscanlogger import logger
+from exception import SkillScanException
+from skillScan.logging import logger
 
 
 @ensure_annotations

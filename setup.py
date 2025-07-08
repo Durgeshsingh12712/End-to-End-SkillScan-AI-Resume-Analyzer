@@ -1,4 +1,4 @@
-import setuptools
+from setuptools import setup, find_packages
 
 
 with open("README.md", "r", encoding="utf-8") as f:
@@ -14,7 +14,7 @@ AUTHOR_EMAIL = "durgeshsingh12712@gmail.com"
 __version__ = "0.1.0"
 
 
-setuptools.setup(
+setup(
     name = SRC_REPO,
     version = __version__,
     author=AUTHOR_NAME,
@@ -42,19 +42,16 @@ setuptools.setup(
         "Topic :: Utilities",
     ],
     package_data= {
-        REPO_NAME: [
+        SRC_REPO: [
             "artifacts/*.csv",
             "artifacts/model_evaluation/*.json",
             "config/*.yaml",
             "templates/*.html",
-            ".txt",
+            "*.txt",
             "static/*.css",
             "static/*.js"
         ]
     },
-    package_dir={"": "skillscan"},
-    packages=setuptools.find_packages(where="skillScan"),
-    include_package_data= True,
-
-
+    packages= find_packages(),
+    install_requires = []
 )
