@@ -6,7 +6,8 @@ from skillScan.logging import logger
 
 from skillScan.components import (
     DataIngestion,
-    DataValidation
+    DataValidation,
+    DataTransformation
 )
 
 
@@ -26,11 +27,21 @@ class TrainingPipeline:
     
     def data_validation(self):
         try:
-            Config = ConfigurationManager()
-            data_validation_config = Config.get_data_validation_config()
+            config = ConfigurationManager()
+            data_validation_config = config.get_data_validation_config()
             data_validation = DataValidation(config=data_validation_config)
             data_validation_artifact = data_validation.initiate_data_validation()
             return data_validation_artifact
+        except Exception as e:
+            raise SkillScanException(e, sys)
+    
+    def data_transformation(self):
+        try:
+            config = ConfigurationManager()
+            data_transformation_config = config.get_data_transformation_config()
+            data_transformation = DataTransformation(config = data_transformation_config)
+            data_transformation_artifact = data_transformation.initiate_data_transformation()
+            return data_transformation_artifact
         except Exception as e:
             raise SkillScanException(e, sys)
     
@@ -49,9 +60,15 @@ class TrainingPipeline:
             data_validation_artifact = self.data_validation()
             logger.info(">>>>>>> Stage 2: Data Validation Completed <<<<<<<")
 
+            # Data Transformation
+            logger.info(">>>>>>> Stage 3: Data Transformation Started <<<<<<<")
+            data_transformation_artifact = self.data_transformation()
+            logger.info(">>>>>>> Stage 3: Data Transformation Completed <<<<<<<")
+
             return {
                 "data_ingestion": data_ingestion_artifact,
                 "data_validation": data_validation_artifact,
+                "data_transformation": data_transformation_artifact,
             }
         
 

@@ -5,5 +5,5 @@ from .constants import constant
 from .entity import config_entity
 from .entity import artifacts_entity
 from .configure import configuration
-from .components import data_ingestion
+from .components import data_ingestion, data_validation, data_transformation
 from .pipeline import training_pipeline

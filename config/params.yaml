@@ -1,0 +1,4 @@
+TFIDF_PARAMS:
+  stop_words: 'english'
+  max_features: 6859
+  sublinear_tf: True
