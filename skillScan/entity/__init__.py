@@ -1,10 +1,8 @@
 from .config_entity import *
-from .artifacts_entity import DataIngestionArtifact, DataValidationArtifact, DataTransformationArtifact
+from .artifacts_entity import *
 
 
 __all__ = [
     "*",
-    "DataIngestionArtifact",
-    "DataValidationArtifact",
-    "DataTransformationArtifact",
+    "*"
 ]

@@ -15,3 +15,8 @@ class DataTransformationArtifact:
     test_data_path: Path
     vectorizer_path: Path
     label_encoder_path: Path
+
+@dataclass(frozen=True)
+class ModelTrainerArtifact:
+    model_path: Path
+    accuracy_score: float

@@ -7,7 +7,8 @@ from skillScan.logging import logger
 from skillScan.components import (
     DataIngestion,
     DataValidation,
-    DataTransformation
+    DataTransformation,
+    ModelTrainer
 )
 
 
@@ -45,6 +46,16 @@ class TrainingPipeline:
         except Exception as e:
             raise SkillScanException(e, sys)
     
+    def model_trainer(self):
+        try:
+            config = ConfigurationManager()
+            model_trainer_config = config.get_model_trainer_config()
+            model_trainer = ModelTrainer(config=model_trainer_config)
+            model_trainer_artifact = model_trainer.initiate_model_trainer()
+            return model_trainer_artifact
+        except Exception as e:
+            raise SkillScanException(e, sys)
+    
     def run_pipeline(self):
         """Run the complete training pipeline"""
         try:
@@ -65,12 +76,20 @@ class TrainingPipeline:
             data_transformation_artifact = self.data_transformation()
             logger.info(">>>>>>> Stage 3: Data Transformation Completed <<<<<<<")
 
+            # Model trainer
+            logger.info(">>>>>>> Stage 4: Model Trainer Started <<<<<<<")
+            model_trainer_artifact = self.model_trainer()
+            logger.info(">>>>>>> Stage 4: Model Trainer Completed <<<<<<<")
+
             return {
                 "data_ingestion": data_ingestion_artifact,
                 "data_validation": data_validation_artifact,
                 "data_transformation": data_transformation_artifact,
+                "model_trainer": model_trainer_artifact
             }
         
 
         except Exception as e:
             raise SkillScanException(e, sys)
+
+print("✅ Training Pipeline created!")

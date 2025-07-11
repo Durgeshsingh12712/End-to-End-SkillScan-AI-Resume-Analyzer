@@ -144,3 +144,5 @@ class DataValidation:
         except Exception as e:
             logger.error(f"Error during Data Validation Initiation: {str(e)}")
             raise SkillScanException(e, sys)
+
+print("✅ Data Validation component implemented!")

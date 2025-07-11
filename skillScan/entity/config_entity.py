@@ -20,3 +20,12 @@ class DataTransformationConfig:
     data_path: Path
     tokenizer_name: str
     max_features: int
+
+@dataclass(frozen=True)
+class ModelTrainerConfig:
+    root_dir: Path
+    train_data_path: Path
+    test_data_path: Path
+    model_name: str
+    vectorizer_name: str
+    label_encoder_name: str

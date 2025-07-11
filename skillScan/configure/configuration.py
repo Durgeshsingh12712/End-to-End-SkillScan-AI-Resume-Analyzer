@@ -1,5 +1,5 @@
 from skillScan.constants import *
-from skillScan.entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig
+from skillScan.entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig, ModelTrainerConfig
 from skillScan.utils import read_yaml, create_directories
 
 class ConfigurationManager:
@@ -55,3 +55,20 @@ class ConfigurationManager:
         )
 
         return data_transformation_config
+    
+
+    def get_model_trainer_config(self) -> ModelTrainerConfig:
+        config = self.config['model_trainer']
+
+        create_directories([config['root_dir']])
+
+        model_trainer_config = ModelTrainerConfig(
+            root_dir=config['root_dir'],
+            train_data_path=config['train_data_path'],
+            test_data_path=config['test_data_path'],
+            model_name=config['model_name'],
+            vectorizer_name=config['vectorizer_name'],
+            label_encoder_name=config['label_encoder_name']
+        )
+
+        return model_trainer_config

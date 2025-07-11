@@ -45,3 +45,5 @@ class DataIngestion:
             
         except Exception as e:
             raise SkillScanException(e, sys)
+
+print("✅ Data Ingestion component implemented!")
