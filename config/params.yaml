@@ -2,3 +2,15 @@ TFIDF_PARAMS:
   stop_words: 'english'
   max_features: 6859
   sublinear_tf: True
+
+TRAIN_TEST_SPLIT:
+  test_size: 0.2
+  random_state: 42
+
+SVC_PARAMS:
+  kernel: 'rbf'
+  random_state: 42
+
+RANDOM_FOREST_PARAMS:
+  n_estimators: 100
+  random_state: 42

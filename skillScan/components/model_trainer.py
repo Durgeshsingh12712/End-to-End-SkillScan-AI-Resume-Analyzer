@@ -590,7 +590,6 @@ class ModelTrainer:
 
             logger.info(f"\nModel Training Completed Successfully")
             logger.info(f"Final Model Saved to: {model_path}")
-            logger.info(f"Final MetaData Saved: {metadata}")
 
             return ModelTrainerArtifact(
                 model_path=model_path,
@@ -606,6 +605,3 @@ class ModelTrainer:
         """Legacy method - calls comprehensive tuning for backward compatibility"""
         logger.warning("Using legacy hyperparameter_tuning method. Consider using initiate_model_trainer with tuning_mode parameter.")
         return self.comprehensive_hyperparameter_tuning(X_train, y_train)
-
-
-print("✅ Model Trainer component implemented!")

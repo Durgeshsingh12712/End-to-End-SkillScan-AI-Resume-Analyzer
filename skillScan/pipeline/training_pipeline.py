@@ -8,7 +8,8 @@ from skillScan.components import (
     DataIngestion,
     DataValidation,
     DataTransformation,
-    ModelTrainer
+    ModelTrainer,
+    ModelEvaluation
 )
 
 
@@ -56,6 +57,16 @@ class TrainingPipeline:
         except Exception as e:
             raise SkillScanException(e, sys)
     
+    def model_evaluation(self):
+        try:
+            config = ConfigurationManager()
+            model_evaluation_config = config.get_model_evaluation_config()
+            model_evaluation = ModelEvaluation(config=model_evaluation_config)
+            model_evaluation_artifact = model_evaluation.initiate_model_evaluation()
+            return model_evaluation_artifact
+        except Exception as e:
+            raise SkillScanException(e, sys)
+    
     def run_pipeline(self):
         """Run the complete training pipeline"""
         try:
@@ -76,16 +87,22 @@ class TrainingPipeline:
             data_transformation_artifact = self.data_transformation()
             logger.info(">>>>>>> Stage 3: Data Transformation Completed <<<<<<<")
 
-            # Model trainer
+            # Model Trainer
             logger.info(">>>>>>> Stage 4: Model Trainer Started <<<<<<<")
             model_trainer_artifact = self.model_trainer()
             logger.info(">>>>>>> Stage 4: Model Trainer Completed <<<<<<<")
+
+            # Model Evaluation
+            logger.info(">>>>>>> Stage 5: Model Evaluation Started <<<<<<<")
+            model_evaluation_artifact = self.model_evaluation()
+            logger.info(">>>>>>> Stage 5: Model Evaluation Completed <<<<<<<")
 
             return {
                 "data_ingestion": data_ingestion_artifact,
                 "data_validation": data_validation_artifact,
                 "data_transformation": data_transformation_artifact,
-                "model_trainer": model_trainer_artifact
+                "model_trainer": model_trainer_artifact,
+                "model_evaluation": model_evaluation_artifact
             }
         
 

@@ -161,5 +161,3 @@ class DataTransformation:
         except Exception as e:
             raise SkillScanException(e, sys)
 
-print("✅ Data Transformation component implemented!")
-print("📊 Ready for model training and evaluation!")

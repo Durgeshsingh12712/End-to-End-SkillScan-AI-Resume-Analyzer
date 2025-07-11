@@ -20,3 +20,10 @@ class DataTransformationArtifact:
 class ModelTrainerArtifact:
     model_path: Path
     accuracy_score: float
+
+@dataclass(frozen=True)
+class ModelEvaluationArtifact:
+    accuracy_score: float
+    precision_score: float
+    recall_score: float
+    f1_score: float
