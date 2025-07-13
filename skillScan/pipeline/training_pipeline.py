@@ -108,5 +108,3 @@ class TrainingPipeline:
 
         except Exception as e:
             raise SkillScanException(e, sys)
-
-print("✅ Training Pipeline created!")

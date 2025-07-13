@@ -1,4 +1,4 @@
-import os, sys, yaml, pickle, json
+import os, sys, yaml, pickle, json, docx, PyPDF2
 from pathlib import Path
 from typing import Any
 from ensure import ensure_annotations
@@ -77,3 +77,39 @@ def load_object(file_path: Path) -> Any:
             return pickle.load(file_obj)
     except Exception as e:
         raise SkillScanException(e, sys)
+    
+
+def extract_text_from_pdf(file_path):
+    """Extract text from PDF file"""
+    try:
+        with open(file_path, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text() + "\n"
+        return text.strip()
+    except Exception as e:
+        logger.error(f"Error extracting text from PDF: {str(e)}")
+        return None
+    
+
+def extract_text_from_docx(file_path):
+    """Extract text from DOCX file"""
+    try:
+        doc = docx.Document(file_path)
+        text = ""
+        for paragraph in doc.paragraphs:
+            text += paragraph.text + "\n"
+        return text.strip()
+    except Exception as e:
+        logger.error(f"Error extracting text from DOCX: {str(e)}")
+        return None
+
+def extract_text_from_file(file_path, file_extension):
+    """Extract text based on file extension"""
+    if file_extension.lower() == 'pdf':
+        return extract_text_from_pdf(file_path)
+    elif file_extension.lower() == 'docx':
+        return extract_text_from_docx(file_path)
+    else:
+        return None

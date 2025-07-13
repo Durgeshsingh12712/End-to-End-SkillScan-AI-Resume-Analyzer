@@ -64,7 +64,7 @@ class PredictionPipeline:
             if not hasattr(self.vectorizer, 'vocabulary_'):
                 raise ValueError("Vectorizer is not fitted. The 'vocabulary_' attribute is missing.")
             
-            logger.info(f"Vectorizer Loaded Successfully with Vacabulary size: {len(self.vectorizer.vacabulary_)}")
+            logger.info(f"Vectorizer Loaded Successfully with Vacabulary size: {len(self.vectorizer.vocabulary_)}")
 
             logger.info(f"Loading Label Encoder from: {self.label_encoder_path}")
             self.label_encoder = load_object(self.label_encoder_path)
@@ -351,7 +351,7 @@ class PredictionPipeline:
             info = {
                 'model_type': str(type(self.model)),
                 'vectorizer_type': str(type(self.vectorizer)),
-                'vocabulary_size': len(self.vectorizer.vacabulary_) if hasattr(self.vectorizer, 'vocabulary_') else 0,
+                'vocabulary_size': len(self.vectorizer.vocabulary_) if hasattr(self.vectorizer, 'vocabulary_') else 0,
                 'label_classes': list(self.label_encoder.classes_) if hasattr(self.label_encoder, 'classes_') else [],
                 'metadata': self.metadata
             }

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analysis Results</title>
+    <link rel="stylesheet" href="../static/css/results.css">
+    <style></style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Analysis Complete</h1>
+            <p>Your resume has been analyzed with AI-powered insights</p>
+        </div>
+
+        <div class="content">
+            <!-- File Information -->
+            <div class="file-info">
+                <h3>📄 File Information</h3>
+                <div class="file-details">
+                    <div><strong>Filename:</strong> {{ results.filename }}</div>
+                    <div><strong>Processed:</strong> {{ results.upload_time }}</div>
+                    <div><strong>Content Length:</strong> {{ results.resume_length }} characters</div>
+                    <div><strong>Status:</strong> ✅ Successfully Analyzed</div>
+                </div>
+            </div>
+
+            <!-- Confidence Alert -->
+            {% if results.prediction.confidence < 0.5 %}
+            <div class="alert alert-warning">
+                <strong>⚠️ Low Confidence Detected:</strong> 
+                The analysis confidence is {{ "%.1f"|format(results.prediction.confidence * 100) }}%. 
+                Consider adding more specific skills and technical details to improve accuracy.
+            </div>
+            {% elif results.prediction.confidence > 0.8 %}
+            <div class="alert alert-info">
+                <strong>✅ High Confidence:</strong> 
+                The analysis shows {{ "%.1f"|format(results.prediction.confidence * 100) }}% confidence in the results.
+            </div>
+            {% endif %}
+
+            <!-- Main Results Grid -->
+            <div class="results-grid">
+                <!-- Prediction Results -->
+                <div class="result-card">
+                    <h3>🎯 Career Category</h3>
+                    <div class="prediction-section">
+                        <div class="prediction-category">{{ results.prediction.prediction }}</div>
+                        <div class="confidence-meter">
+                            <div class="confidence-fill {% if results.prediction.confidence < 0.4 %}low{% elif results.prediction.confidence < 0.7 %}medium{% endif %}" 
+                                 style="width: {{ results.prediction.confidence * 100 }}%"></div>
+                            <div class="confidence-text">{{ "%.1f"|format(results.prediction.confidence * 100) }}%</div>
+                        </div>
+                        <p><strong>Confidence:</strong> {{ results.prediction.confidence_level }}</p>
+                    </div>
+
+                    <!-- Top Predictions -->
+                    <div class="top-predictions">
+                        <h4>Top Predictions:</h4>
+                        {% for category, score in results.prediction.top_5_predictions[:3] %}
+                        <div class="prediction-item">
+                            <span class="prediction-name">{{ category }}</span>
+                            <span class="prediction-score">{{ "%.1f"|format(score * 100) }}%</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Skills Analysis -->
+                <div class="result-card">
+                    <h3>🔍 Skills Identified</h3>
+                    <p><strong>{{ results.skill_analysis.skill_count }}</strong> skills detected in your resume</p>
+                    
+                    {% if results.skill_analysis.found_skills %}
+                    <div class="skills-grid">
+                        {% for skill in results.skill_analysis.found_skills %}
+                        <div class="skill-tag">{{ skill }}</div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p style="color: #6b7280; margin-top: 15px;">No specific skills detected. Consider adding more technical skills and tools.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Improvement Suggestions -->
+            <div class="result-card">
+                <h3>💡 Improvement Suggestions</h3>
+                <p>Based on your <strong>{{ results.skill_analysis.category_focus }}</strong> profile, here are our recommendations:</p>
+                
+                <ul class="suggestions-list">
+                    {% for suggestion in results.skill_analysis.improvement_suggestions %}
+                    <li>
+                        <span class="suggestion-icon">•</span>
+                        <span>{{ suggestion }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">{{ results.skill_analysis.skill_count }}</div>
+                    <div class="stat-label">Skills Found</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ "%.0f"|format(results.prediction.confidence * 100) }}%</div>
+                    <div class="stat-label">Confidence</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ results.prediction.top_5_predictions|length }}</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ (results.resume_length / 1000)|round(1) }}k</div>
+                    <div class="stat-label">Characters</div>
+                </div>
+            </div>
+
+            <!-- Resume Preview -->
+            <div class="resume-preview">
+                <h4>📖 Resume Preview</h4>
+                <div class="resume-text">{{ results.resume_preview }}</div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <button class="btn btn-primary" onclick="copyResults()">📋 Copy Results</button>
+                <a href="/download-report" class="btn btn-success">📥 Download Report</a>
+                <a href="/" class="btn btn-secondary">🔄 Analyze Another</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="../static/js/results.js"></script>
+</body>
+</html>

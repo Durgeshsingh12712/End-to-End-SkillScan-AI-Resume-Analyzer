@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Skill Extraction Tool</title>
+    <link rel="stylesheet" href="../static/css/index.css">
+    <style></style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Resume Skill Analyzer</h1>
+            <p>Upload your resume and get instant skill analysis with AI-powered insights and improvement suggestions</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'error' if category == 'error' else 'success' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">Drop your resume here or click to browse</div>
+                    <div class="upload-subtext">Supports PDF and DOCX files up to 2MB</div>
+                    <input type="file" name="file" id="fileInput" class="file-input" accept=".pdf,.docx" required>
+                </div>
+                
+                <div id="selectedFile" class="selected-file" style="display: none;">
+                    <div class="filename"></div>
+                    <div class="filesize"></div>
+                </div>
+                
+                <button type="submit" class="upload-btn" id="uploadBtn" disabled>
+                    Analyze Resume
+                </button>
+            </div>
+        </form>
+
+        <div class="loading" id="loadingSection">
+            <div class="spinner"></div>
+            <p>Analyzing your resume...</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🔍</div>
+                <h3>Skill Detection</h3>
+                <p>AI identifies key skills and technologies</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <h3>Category Analysis</h3>
+                <p>Determines your professional domain</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💡</div>
+                <h3>Improvement Tips</h3>
+                <p>Actionable suggestions for enhancement</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📈</div>
+                <h3>Confidence Score</h3>
+                <p>Reliability assessment of analysis</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../static/js/index.js"></script>
+</body>
+</html>
