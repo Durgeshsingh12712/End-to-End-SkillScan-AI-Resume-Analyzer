@@ -1,5 +1,5 @@
 # End-to-End-SkillScan-AI-Resume-Analyzer
-
+```bash
 SkillScan AI Resume Analyzer
 An intelligent end-to-end machine learning application that analyzes resumes using AI to extract skills, evaluate candidates, and provide comprehensive insights for recruitment processes.
 🚀 Features
@@ -213,3 +213,4 @@ Create a new issue if your problem isn't already addressed
 Provide detailed information about your environment and the issue
 
 Happy Analyzing! 🎯
+```
