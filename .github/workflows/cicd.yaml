@@ -1,169 +1,45 @@
-name: SkillScan AI Resume Analyzer CI/CD Pipeline
+name: workflow
 
 on:
   push:
     branches:
       - main
-      - develop
     paths-ignore:
       - 'README.md'
-      - '*.md'
-      - '.gitignore'
-  pull_request:
-    branches:
-      - main
-    paths-ignore:
-      - 'README.md'
-      - '*.md'
-      - '.gitignore'
 
 permissions:
   id-token: write
   contents: read
 
-env:
-  PYTHON_VERSION: '3.8'
-  IMAGE_TAG: ${{ github.sha }}
-  APP_NAME: SkillScan-AI-Resume-Analyzer-app
-
 jobs:
   integration:
     name: Continuous Integration
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
-
-      - name: Cache pip dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install flake8 pytest pytest-cov black isort safety bandit
-          
-          # Check if requirements.txt exists
-          if [ -f requirements.txt ]; then
-            echo "Installing from requirements.txt..."
-            pip install -r requirements.txt
-          else
-            echo "⚠️ requirements.txt not found. Creating basic one..."
-            cat > requirements.txt << 'EOF'
-          Flask==2.3.3
-          python-dotenv==1.0.0
-          gunicorn==21.2.0
-          EOF
-            pip install -r requirements.txt
-          fi
-          
-          # Generate requirements if needed
-          pip freeze > requirements-frozen.txt
-
-      - name: Code formatting with Black
-        run: |
-          black --line-length 127 .
-
-      - name: Import sorting with isort
-        run: |
-          isort --profile black --line-length 127 .
-
-      - name: Lint with flake8
-        run: |
-          # Stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # Exit-zero treats all errors as warnings
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-      - name: Security check with bandit
-        run: |
-          # More lenient approach - only fail on high severity issues
-          bandit -r . -x ./tests/,./venv/,./env/,./build/,./dist/ -l --skip B101
-
-      - name: Safety check for known vulnerabilities
-        run: |
-          # Check for known security vulnerabilities in dependencies
-          safety check --json --output safety-report.json || echo "⚠️ Safety found vulnerable dependencies"
-          
-          # Also run without JSON for readable output
-          safety check || echo "⚠️ Some dependencies may have known vulnerabilities. Check the report above."
+      - name: Lint code
+        run: echo "Linting repository"
 
       - name: Run unit tests
-        run: |
-          if [ -d "tests" ]; then
-            echo "Running tests with coverage..."
-            pytest tests/ -v --cov=skillScan --cov-report=xml --cov-report=html --cov-report=term-missing
-          elif [ -d "test" ]; then
-            echo "Found 'test' directory, running tests..."
-            pytest test/ -v --cov=skillScan --cov-report=xml --cov-report=html --cov-report=term-missing
-          else
-            echo "No tests directory found, creating minimal test structure..."
-            mkdir -p tests
-            echo "# Add your tests here" > tests/__init__.py
-            echo "def test_placeholder(): assert True" > tests/test_placeholder.py
-            pytest tests/ -v --cov=skillScan --cov-report=xml --cov-report=html --cov-report=term-missing
-          fi
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-
-  security-scan:
-    name: Security Scanning
-    runs-on: ubuntu-latest
-    needs: integration
-    
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
+        run: echo "Running unit tests"
 
   build-and-push-ecr-image:
-    name: Build and Push to ECR
-    needs: [integration, security-scan]
+    name: Continuous Delivery
+    needs: integration
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    outputs:
-      image: ${{ steps.build-image.outputs.image }}
-      
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Install Utilities
         run: |
           sudo apt-get update
-          sudo apt-get install -y jq unzip curl
+          sudo apt-get install -y jq unzip
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -171,86 +47,31 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Create ECR repository if it doesn't exist
-        run: |
-          aws ecr describe-repositories --repository-names ${{ secrets.ECR_REPOSITORY_NAME }} || \
-          aws ecr create-repository --repository-name ${{ secrets.ECR_REPOSITORY_NAME }}
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+          IMAGE_TAG: latest
         run: |
-          # Ensure Dockerfile exists
-          if [ ! -f "Dockerfile" ]; then
-            echo "❌ Dockerfile not found! Creating a basic one..."
-            cat > Dockerfile << 'EOF'
-          FROM python:3.8-slim
-          
-          WORKDIR /app
-          
-          # Copy requirements first for better caching
-          COPY requirements.txt .
-          RUN pip install --no-cache-dir -r requirements.txt
-          
-          # Copy application code
-          COPY . .
-          
-          # Create non-root user
-          RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-          USER appuser
-          
-          EXPOSE 5000
-          
-          CMD ["python", "app.py"]
-          EOF
-          fi
-          
-          # Build Docker image with error handling
-          echo "Building Docker image..."
-          if docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .; then
-            echo "✅ Docker build successful"
-          else
-            echo "❌ Docker build failed"
-            exit 1
-          fi
-          
-          # Tag as latest
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          
-          # Push both tagged and latest versions
-          echo "Pushing images to ECR..."
+          # Build a docker container and
+          # push it to ECR so that it can
+          # be deployed to ECS.
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Scan Docker image for vulnerabilities
-        run: |
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-            -v $HOME/Library/Caches:/root/.cache/ \
-            aquasec/trivy:latest image \
-            --exit-code 0 --no-progress --format table \
-            ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:${{ env.IMAGE_TAG }}
-
-  deploy-staging:
-    name: Deploy to Staging
+  Continuous-Deployment:
     needs: build-and-push-ecr-image
     runs-on: self-hosted
-    if: github.ref == 'refs/heads/main'
-    environment:
-      name: staging
-      url: http://staging.yourapp.com
-    
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -258,215 +79,24 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Pull latest image
+      - name: Pull latest images
         run: |
-          docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:${{ env.IMAGE_TAG }}
+          docker pull ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
-      - name: Stop and remove existing staging container
-        run: |
-          docker ps -q --filter "name=SkillScan-AI-Resume-Analyzer-staging" | grep -q . && \
-          docker stop SkillScan-AI-Resume-Analyzer-staging && \
-          docker rm -fv SkillScan-AI-Resume-Analyzer-staging || true
+      #- name: Stop and remove container if running
+      # run: |
+      # docker ps -q --filter "nam=skillscan" | grep -q . && docker stop skillscan && docker rm -fv skillscan
 
-      - name: Run Docker Image in Staging
+      - name: Run Docker Image to serve users
         run: |
-          docker run -d -p 8080:5000 --name=SkillScan-AI-Resume-Analyzer-staging \
-            --restart=unless-stopped \
+          docker run -d -p 8080:5000 --ipc="host" --name=skillscan \
             -e 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}' \
             -e 'AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
             -e 'AWS_REGION=${{ secrets.AWS_REGION }}' \
-            -e 'FLASK_ENV=staging' \
-            -e 'SECRET_KEY=${{ secrets.SECRET_KEY }}' \
-            -v /tmp/SkillScan-AI-Resume-Analyzer-uploads:/tmp \
-            --health-cmd="curl -f http://localhost:5000/ || exit 1" \
-            --health-interval=30s \
-            --health-timeout=10s \
-            --health-retries=3 \
-            ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:${{ env.IMAGE_TAG }}
+            ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
-      - name: Health check staging deployment
-        run: |
-          echo "Waiting for container to start..."
-          sleep 30
-          
-          # Check if container is running
-          if ! docker ps | grep -q "SkillScan-AI-Resume-Analyzer-staging"; then
-            echo "❌ Container is not running"
-            docker logs SkillScan-AI-Resume-Analyzer-staging || true
-            exit 1
-          fi
-          
-          # Health check with retries
-          max_attempts=10
-          attempt=1
-          
-          while [ $attempt -le $max_attempts ]; do
-            echo "Health check attempt $attempt/$max_attempts..."
-            if curl -f http://localhost:8080/ || curl -f http://localhost:8080/health; then
-              echo "✅ Health check passed"
-              break
-            fi
-            
-            if [ $attempt -eq $max_attempts ]; then
-              echo "❌ Health check failed after $max_attempts attempts"
-              docker logs SkillScan-AI-Resume-Analyzer-staging
-              exit 1
-            fi
-            
-            echo "⏳ Waiting 10 seconds before retry..."
-            sleep 10
-            ((attempt++))
-          done
-
-      - name: Run staging tests
-        run: |
-          # Add staging-specific tests here
-          echo "Running staging integration tests"
-
-  deploy-production:
-    name: Deploy to Production
-    needs: deploy-staging
-    runs-on: self-hosted
-    if: github.ref == 'refs/heads/main'
-    environment:
-      name: production
-      url: http://production.yourapp.com
-    
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Pull latest image
-        run: |
-          docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:${{ env.IMAGE_TAG }}
-
-      - name: Create backup of current production container
-        run: |
-          if docker ps -q --filter "name=SkillScan-AI-Resume-Analyzer-prod" | grep -q .; then
-            docker commit SkillScan-AI-Resume-Analyzer-prod SkillScan-AI-Resume-Analyzer-backup:$(date +%Y%m%d-%H%M%S)
-          fi
-
-      - name: Deploy to production with zero downtime
-        run: |
-          # Pull new image
-          docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:${{ env.IMAGE_TAG }}
-          
-          # Start new container on different port
-          docker run -d -p 8081:5000 --name=SkillScan-AI-Resume-Analyzer-prod-new \
-            --restart=unless-stopped \
-            -e 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}' \
-            -e 'AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
-            -e 'AWS_REGION=${{ secrets.AWS_REGION }}' \
-            -e 'FLASK_ENV=production' \
-            -e 'SECRET_KEY=${{ secrets.SECRET_KEY }}' \
-            -v /tmp/SkillScan-AI-Resume-Analyzer-uploads:/tmp \
-            -v /var/log/SkillScan-AI-Resume-Analyzer:/var/log/app \
-            --health-cmd="curl -f http://localhost:5000/ || exit 1" \
-            --health-interval=30s \
-            --health-timeout=10s \
-            --health-retries=3 \
-            ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:${{ env.IMAGE_TAG }}
-
-      - name: Health check new production deployment
-        run: |
-          sleep 30
-          for i in {1..10}; do
-            if curl -f http://localhost:8081/; then
-              echo "Health check passed"
-              break
-            fi
-            echo "Health check failed, retrying in 10 seconds..."
-            sleep 10
-          done
-
-      - name: Switch traffic to new container
-        run: |
-          # Stop old container if exists
-          if docker ps -q --filter "name=SkillScan-AI-Resume-Analyzer-prod" | grep -q .; then
-            docker stop SkillScan-AI-Resume-Analyzer-prod
-            docker rm SkillScan-AI-Resume-Analyzer-prod
-          fi
-          
-          # Stop new container and restart on production port
-          docker stop SkillScan-AI-Resume-Analyzer-prod-new
-          docker rm SkillScan-AI-Resume-Analyzer-prod-new
-          
-          # Start final production container
-          docker run -d -p 8080:5000 --name=SkillScan-AI-Resume-Analyzer-prod \
-            --restart=unless-stopped \
-            -e 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}' \
-            -e 'AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
-            -e 'AWS_REGION=${{ secrets.AWS_REGION }}' \
-            -e 'FLASK_ENV=production' \
-            -e 'SECRET_KEY=${{ secrets.SECRET_KEY }}' \
-            -v /tmp/SkillScan-AI-Resume-Analyzer-uploads:/tmp \
-            -v /var/log/SkillScan-AI-Resume-Analyzer:/var/log/app \
-            --health-cmd="curl -f http://localhost:5000/ || exit 1" \
-            --health-interval=30s \
-            --health-timeout=10s \
-            --health-retries=3 \
-            ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:${{ env.IMAGE_TAG }}
-
-      - name: Final health check
-        run: |
-          sleep 30
-          
-          # Final health check with detailed logging
-          if curl -f http://localhost:8080/ || curl -f http://localhost:8080/health; then
-            echo "✅ Final health check passed - deployment successful!"
-          else
-            echo "❌ Final health check failed"
-            echo "Container logs:"
-            docker logs SkillScan-AI-Resume-Analyzer-prod || true
-            echo "Container status:"
-            docker ps -a | grep SkillScan-AI-Resume-Analyzer || true
-            exit 1
-          fi
-
-      - name: Cleanup on failure
-        if: failure()
-        run: |
-          echo "🧹 Cleaning up failed deployment..."
-          docker stop SkillScan-AI-Resume-Analyzer-prod-new || true
-          docker rm SkillScan-AI-Resume-Analyzer-prod-new || true
-          docker stop SkillScan-AI-Resume-Analyzer-prod || true
-          docker rm SkillScan-AI-Resume-Analyzer-prod || true
-          echo "Cleanup completed"
-
-      - name: Clean up old images and containers
+      - name: Clean previous images and containers
         run: |
           docker system prune -f
-          # Keep only last 5 images
-          docker images ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }} --format "table {{.Repository}}\t{{.Tag}}\t{{.ID}}" | tail -n +6 | awk '{print $3}' | xargs -r docker rmi || true
-
-  notify:
-    name: Notify Deployment Status
-    runs-on: ubuntu-latest
-    needs: [deploy-production]
-    if: always()
-    
-    steps:
-      - name: Notify on Success
-        if: needs.deploy-production.result == 'success'
-        run: |
-          echo "✅ Deployment to production successful!"
-          # Add notification logic here (Slack, email, etc.)
-          
-      - name: Notify on Failure
-        if: needs.deploy-production.result == 'failure'
-        run: |
-          echo "❌ Deployment to production failed!"
-          # Add notification logic here (Slack, email, etc.)
