@@ -85,6 +85,7 @@ bashpython -m skillscan.pipeline.prediction_pipeline
 - Explore the research and development process:
 - bashjupyter notebook notebooks/research.ipynb
 ## 📁 **Project Structure**
+```bash
 - End-to-End-SkillScan-AI-Resume-Analyzer/
 ├── .github/workflows/          # GitHub Actions workflows
 ├── skillscan/                  # Main package directory
@@ -125,8 +126,7 @@ bashpython -m skillscan.pipeline.prediction_pipeline
 ├── main.py                    # Main execution script
 ├── requirements.txt           # Python dependencies
 └── setup.py                   # Package setup
-
----
+```
 
 ## ⚙️ **Configuration**
 ### **Configuration Files**
@@ -173,6 +173,7 @@ The project uses GitHub Actions for continuous integration and deployment:
 
 ## 🏗️ **Architecture**
 ### **System Architecture**
+```bash
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Web Frontend  │    │   Flask API     │    │   ML Pipeline   │
 │   (HTML/CSS/JS) │◄───┤   (app.py)      │◄───┤   (Training)    │
@@ -185,7 +186,7 @@ The project uses GitHub Actions for continuous integration and deployment:
                        └─────────────────┘
 
 ---
-
+```
 ### **ML Pipeline Flow** 
 
 - Data Ingestion: Resume collection and preprocessing

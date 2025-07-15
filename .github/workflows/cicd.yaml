@@ -22,7 +22,7 @@ permissions:
   contents: read
 
 env:
-  PYTHON_VERSION: '3.9'
+  PYTHON_VERSION: '3.8'
   IMAGE_TAG: ${{ github.sha }}
   APP_NAME: SkillScan-AI-Resume-Analyzer-app
 
@@ -30,18 +30,15 @@ jobs:
   integration:
     name: Continuous Integration
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.8', '3.9', '3.10']
     
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python 3.8
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.8'
 
       - name: Cache pip dependencies
         uses: actions/cache@v3
@@ -89,7 +86,6 @@ jobs:
           fi
 
       - name: Upload coverage to Codecov
-        if: matrix.python-version == '3.9'
         uses: codecov/codecov-action@v3
         with:
           file: ./coverage.xml
