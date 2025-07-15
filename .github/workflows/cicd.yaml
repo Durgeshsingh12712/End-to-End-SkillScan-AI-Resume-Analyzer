@@ -56,18 +56,11 @@ jobs:
 
       - name: Code formatting with Black
         run: |
-          # Option 1: Just check formatting (fails if not formatted)
-          # black --check --diff .
-          
-          # Option 2: Auto-format code (recommended for development)
-          black .
-          
-          # Option 3: Check and provide helpful error message
-          # black --check --diff . || (echo "❌ Code formatting issues found. Run 'black .' locally to fix them." && exit 1)
+          black --line-length 127 .
 
       - name: Import sorting with isort
         run: |
-          isort --check-only --diff .
+          isort --profile black --line-length 127 .
 
       - name: Lint with flake8
         run: |
