@@ -365,3 +365,17 @@ Both files are well-structured and follow best practices, but there are several 
 - Code quality tools (Black, isort, flake8, bandit)
 
 The pipeline is production-ready
+## **HomePage**
+![My Image](https://github.com/Durgeshsingh12712/Data-All/blob/main/skillscan/Skillscan_Home.png)
+## **Result Analysis**
+![My Image](https://github.com/Durgeshsingh12712/Data-All/blob/main/skillscan/skillscab_result.png)
+## **Complete CICD on AWS**
+![My Image](https://github.com/Durgeshsingh12712/Data-All/blob/main/skillscan/SkillScn%20cicd.png)
+
+```bash
+Youtube Link :- https://youtu.be/kc9mNUH2Qew
+
+LinkDin Link :- https://www.linkedin.com/posts/durgesh-singh-88822b348_skillscan-ai-resume-analyzer-an-intelligent-activity-7350912374347894784-ot4O?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFbjCSgBaozGJUzEI1yTGjoEXbiGQro18YU
+
+InstaGram Link :- https://www.instagram.com/reel/DMIoMyJT5pQ/?igsh=MWZydXJ4Y3piMnkyaw%3D%3D
+```
