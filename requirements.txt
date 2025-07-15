@@ -10,5 +10,6 @@ ensure
 python-box
 pytest
 scipy
+reportlab
 
 -e .
