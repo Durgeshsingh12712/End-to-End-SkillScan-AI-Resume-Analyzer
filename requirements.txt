@@ -5,6 +5,8 @@ xgboost
 pickles
 lightgbm
 flask
+python-docx
+PyPDF2
 PyYAML
 ensure
 python-box
